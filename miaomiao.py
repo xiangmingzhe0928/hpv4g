@@ -6,6 +6,8 @@ import logging
 
 # disable ssl warnings
 requests.packages.urllib3.disable_warnings()
+
+# url
 URLS = {
     "IP_PROXY": "https://ip.jiangxianli.com/api/proxy_ips",
     "SERVER_TIME": "https://miaomiao.scmttec.com/seckill/seckill/now2.do",
@@ -13,6 +15,8 @@ URLS = {
     "USER_INFO": "https://miaomiao.scmttec.com/seckill/linkman/findByUserId.do",
     "SEC_KILL": "https://miaomiao.scmttec.com/seckill/seckill/subscribe.do"
 }
+
+# common headers
 REQ_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36 MicroMessenger/7.0.9.501 NetType/WIFI MiniProgramEnv/Windows WindowsWechat",
     "Referer": "https://servicewechat.com/wxff8cad2e9bf18719/10/page-frame.html",
@@ -50,25 +54,6 @@ class MiaoMiao():
                 f'{url}\n{"-" * 5 + "Request" + "-" * 5}\n{"-" * 5 + "Response" + "-" * 5}\n{res_json}\nuseTime:{response.elapsed.total_seconds()}S\n')
             return res_json
 
-    def get_vaccine_list(self):
-        """
-        获取待秒杀疫苗列表
-        :return:疫苗列表
-        """
-        # 分页查询可秒杀疫苗 regionCode:5101[四川成都区域编码]
-        req_param_list = {'offset': '0', 'limit': '10', 'regionCode': self._region_code}
-        res_vaccine = MiaoMiao._get(URLS['VACCINE_LIST'], params=req_param_list, headers=self._headers, verify=False)
-        if '0000' != res_vaccine['code']:
-            print(res_vaccine['msg'])
-            logging.debug(res_vaccine['msg'])
-            exit(1)
-
-        datas = res_vaccine['data']
-        if not datas:
-            print(f'---区域:{self._region_code}暂无可秒杀疫苗---')
-            exit(0)
-        return datas
-
     @staticmethod
     def get_server_time():
         """
@@ -88,6 +73,25 @@ class MiaoMiao():
         """
         return MiaoMiao._get(URLS['IP_PROXY'], params={'page': page, 'country': '中国', 'order_by': 'validated_at'},
                              verify=False)
+
+    def get_vaccine_list(self):
+        """
+        获取待秒杀疫苗列表
+        :return:疫苗列表
+        """
+        # 分页查询可秒杀疫苗 regionCode:5101[四川成都区域编码]
+        req_param_list = {'offset': '0', 'limit': '10', 'regionCode': self._region_code}
+        res_vaccine = MiaoMiao._get(URLS['VACCINE_LIST'], params=req_param_list, headers=self._headers, verify=False)
+        if '0000' != res_vaccine['code']:
+            print(res_vaccine['msg'])
+            logging.debug(res_vaccine['msg'])
+            exit(1)
+
+        datas = res_vaccine['data']
+        if not datas:
+            print(f'---区域:{self._region_code}暂无可秒杀疫苗---')
+            exit(0)
+        return datas
 
     def get_user(self):
         """
