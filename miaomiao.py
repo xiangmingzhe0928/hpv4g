@@ -3,6 +3,7 @@
 import requests
 import copy
 import logging
+from hashlib import md5
 
 # disable ssl warnings
 requests.packages.urllib3.disable_warnings()
@@ -33,11 +34,12 @@ class MiaoMiao():
         self._headers['cookie'] = cookie
 
     @staticmethod
-    def _get(url, params=None, **kwargs):
+    def _get(url, params=None, error_exit=True, **kwargs):
         """
         GET请求. 请求返回错误码(4XX,5XX)时退出
         :param url: 请求路径
         :param params: 请求参数
+        :param error_exit:返回4XX 5XX错误时 是否退出
         :param kwargs: 附加信息
         :return: 结果JSON
         """
@@ -47,11 +49,12 @@ class MiaoMiao():
         except Exception as err:
             print(f'URL:{url} error occurred{err}')
             logging.error(f'URL:{url} ERROR:{err}')
-            exit(1)
+            if error_exit:
+                exit(1)
         else:
             res_json = response.json()
             logging.info(
-                f'{url}\n{"-" * 5 + "Request" + "-" * 5}\n{"-" * 5 + "Response" + "-" * 5}\n{res_json}\nuseTime:{response.elapsed.total_seconds()}S\n')
+                f'{url}\n{"-" * 5 + "Request" + "-" * 5}\n{params}\n{"-" * 5 + "Response" + "-" * 5}\n{res_json}\nuseTime:{response.elapsed.total_seconds()}S\n')
             return res_json
 
     @staticmethod
@@ -68,6 +71,15 @@ class MiaoMiao():
     def get_proxy_ip(page=1):
         """
         获取最新可用的代理IP
+        IP代理来源
+            1.使用收费的代理商提供
+            2.自建IP代理池
+                - 爬取免费IP代理
+                - 验证IP可用
+                - 持久化
+                - 定时更新可用IP
+
+        这里直接使用第三方提供的API(避免自建轮子、搭建环境。测试)：https://github.com/jiangxianli/ProxyIpLib
         :param page:
         :return:
         """
@@ -84,7 +96,6 @@ class MiaoMiao():
         res_vaccine = MiaoMiao._get(URLS['VACCINE_LIST'], params=req_param_list, headers=self._headers, verify=False)
         if '0000' != res_vaccine['code']:
             print(res_vaccine['msg'])
-            logging.debug(res_vaccine['msg'])
             exit(1)
 
         datas = res_vaccine['data']
@@ -111,4 +122,8 @@ class MiaoMiao():
         :param proxies: 代理配置
         :return:
         """
-        return MiaoMiao._get(URLS['SEC_KILL'], params=req_param, headers=self._headers, proxies=proxies, verify=False)
+        _md5 = md5()
+        _md5.update(f'{req_param["seckillId"]}{req_param["linkmanId"]}'.encode('utf-8'))
+        self._headers['ecc-hs'] = _md5.hexdigest()
+        # error_exit=False 忽略Server端使用5XX防爬策略
+        return MiaoMiao._get(URLS['SEC_KILL'], params=req_param, error_exit=False, headers=self._headers, proxies=proxies, verify=False)
