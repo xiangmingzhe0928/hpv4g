@@ -123,9 +123,6 @@ class MiaoMiao():
         :param proxies: 代理配置
         :return:
         """
-        _md5 = md5()
-        _md5.update(f'{req_param["seckillId"]}{req_param["linkmanId"]}'.encode('utf-8'))
-        self._headers['ecc-hs'] = _md5.hexdigest()
         # error_exit=False 忽略Server端使用5XX防爬策略
         return MiaoMiao._get(URLS['SEC_KILL'], params=req_param, error_exit=False, headers=self._headers,
                              proxies=proxies, verify=False)
