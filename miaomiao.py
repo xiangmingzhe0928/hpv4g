@@ -53,7 +53,7 @@ class MiaoMiao():
                 exit(1)
         else:
             res_json = response.json()
-            logging.info(
+            logging.error(
                 f'{url}\n{"-" * 5 + "Request" + "-" * 5}\n{params}\n{"-" * 5 + "Response" + "-" * 5}\n{res_json}\nuseTime:{response.elapsed.total_seconds()}S\n')
             return res_json
 
@@ -84,6 +84,7 @@ class MiaoMiao():
         :return:
         """
         return MiaoMiao._get(URLS['IP_PROXY'], params={'page': page, 'country': '中国', 'order_by': 'validated_at'},
+                             error_exit=False,
                              verify=False)
 
     def get_vaccine_list(self):
@@ -126,4 +127,5 @@ class MiaoMiao():
         _md5.update(f'{req_param["seckillId"]}{req_param["linkmanId"]}'.encode('utf-8'))
         self._headers['ecc-hs'] = _md5.hexdigest()
         # error_exit=False 忽略Server端使用5XX防爬策略
-        return MiaoMiao._get(URLS['SEC_KILL'], params=req_param, error_exit=False, headers=self._headers, proxies=proxies, verify=False)
+        return MiaoMiao._get(URLS['SEC_KILL'], params=req_param, error_exit=False, headers=self._headers,
+                             proxies=proxies, verify=False)

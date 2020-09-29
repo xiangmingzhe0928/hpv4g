@@ -49,8 +49,12 @@ def init_ip_proxy_pool(pages: int = 2) -> list:
     填充临时IP代理池。（考虑到秒杀场景瞬时性,提前初始化可用的IP代理 避免秒杀中临时调用API）
     :return: ip代理池列表
     """
-    ip_proxy_res = [MiaoMiao.get_proxy_ip(p)['data']['data'] for p in range(1, pages + 1)]
-    return [f'{data["ip"]}:{data["port"]}' for data in list(chain(*ip_proxy_res))]
+    ip_proxy_res = []
+    for p in range(1, pages + 1):
+        if ipt := MiaoMiao.get_proxy_ip(p):
+            ip_proxy_res.append(ipt['data']['data'])
+    # ip_proxy_res = [MiaoMiao.get_proxy_ip(p)['data']['data'] for p in range(1, pages + 1)]
+    return [f'{data["ip"]}:{data["port"]}' for data in list(chain(*ip_proxy_res))] if ip_proxy_res else ip_proxy_res
 
 
 def _build_skill_param(user, vaccines: list) -> list:
@@ -90,16 +94,12 @@ def run(miao_miao, max_workers=None, single=False):
     ip_proxys = init_ip_proxy_pool()
 
     # python3.8 默认max_workers = min(32, os.cpu_count() + 4)
+    _params_len = len(params)
+    _ip_proxys_len = len(ip_proxys)
     with ThreadPoolExecutor(max_workers=max_workers) as t:
-        ip_proxy_len = len(ip_proxys)
-        # [t.submit(sec_kill_task, req_param, {'http': None if i % ip_proxy_len == 0 else ip_proxys[i % ip_proxy_len]})
-        #  for i in range(20)]
-        fs = []
-        for i in range(max_workers + 5):
-            # 此处并没有使用随机选择代理
-            index = i % ip_proxy_len
-            fs.append(
-                t.submit(sec_kill_task, params[i % len(params)], {'http': None if index == 0 else ip_proxys[index]}))
+        fs = [t.submit(sec_kill_task, params[i % _params_len],
+                       None if _ip_proxys_len else {'http': None if (index := i % _ip_proxys_len) == 0 else ip_proxys[index]}) for i in
+              range(max_workers + 5)]
 
         # 30S后结束任务
         wait(fs, 30, return_when=FIRST_COMPLETED)
@@ -126,16 +126,18 @@ def _get_arguments():
     parser.add_argument('cookie', help='http请求cookie')
     parser.add_argument('-mw', '--max_workers', type=_valid_int_type, help='最大线工作线程数 默认使用 min(32, os.cpu_count() + 4)')
     parser.add_argument('-rc', '--region_code', type=int, default='5101', help='区域编码 默认使用成都编码5101')
-    parser.add_argument('-sp', '--single_point', action='store_true', help='只秒杀单个疫苗[即所有线程秒杀同一个疫苗] 默认不开启该参数则所有线程分配秒杀所有可秒杀疫苗')
+    parser.add_argument('-sp', '--single_point', action='store_true',
+                        help='只秒杀单个疫苗[即所有线程秒杀同一个疫苗] 默认不开启该参数则所有线程分配秒杀所有可秒杀疫苗')
     parser.add_argument('--log', default='WARNING', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
                         help='日志级别 默认WARNING')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
-    args = _get_arguments()
-    logging.basicConfig(handlers=[logging.FileHandler(filename=LOG_NAME,
-                                                      encoding='utf-8', mode='a+')],
-                        format='%(asctime)s %(message)s',
-                        level=getattr(logging, args.log))
-    run(MiaoMiao(args.tk, args.cookie), args.region_code, args.single_point)
+    # args = _get_arguments()
+    # logging.basicConfig(handlers=[logging.FileHandler(filename=LOG_NAME,
+    #                                                   encoding='utf-8', mode='a+')],
+    #                     format='%(asctime)s %(message)s',
+    #                     level=getattr(logging, args.log))
+    # run(MiaoMiao(args.tk, args.cookie), args.region_code, args.single_point)
+    print(init_ip_proxy_pool())

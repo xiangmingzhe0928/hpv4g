@@ -5,6 +5,7 @@ from threading import current_thread
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED, as_completed, ALL_COMPLETED
 import random
 import miaomiao
+import atexit
 
 FLAG = False
 
@@ -65,16 +66,20 @@ def test3333(paxm, **kwargs):
     # res = requests.get('https://baidu.com', proxies=pax, verify=False)
     #
     # print(res.status_code)
-    # print('====================')
+    # pr
+    #
+    # int('====================')
 
+
+def test1(n):
+    try:
+        r = 1/n
+    except Exception as e:
+        print(e)
+    else:
+        return r
 
 if __name__ == '__main__':
-    with ThreadPoolExecutor(max_workers=5) as t:
-        # [t.submit(sec_kill_task, req_param, {'http': None if i % ip_proxy_len == 0 else ip_proxys[i % ip_proxy_len]})
-        #  for i in range(20)]
-        fs = [t.submit(test333, n) for n in range(5)]
-        # 30S后结束任务
-        wait(fs, 30, return_when=FIRST_COMPLETED)
-        print(f'--------Done-------')
-
-    print(f'---All Done')
+    # s1 = test1(0)
+    l1 = [(v1 := test1(x)) for x in [0,0]]
+    print(l1,len(l1))
