@@ -89,7 +89,7 @@ def run(miao_miao, max_workers=None, single=False):
         print('秒杀还未开始,请开始前5S执行')
         exit(0)
 
-    params = params if single else params[:1]
+    params = params if not single else params[:1]
     # 初始化IP代理池
     ip_proxys = init_ip_proxy_pool()
 
@@ -98,7 +98,8 @@ def run(miao_miao, max_workers=None, single=False):
     _ip_proxys_len = len(ip_proxys)
     with ThreadPoolExecutor(max_workers=max_workers) as t:
         fs = [t.submit(sec_kill_task, params[i % _params_len],
-                       None if _ip_proxys_len else {'http': None if (index := i % _ip_proxys_len) == 0 else ip_proxys[index]}) for i in
+                       None if not _ip_proxys_len else {
+                           'http': None if (index := i % _ip_proxys_len) == 0 else ip_proxys[index]}) for i in
               range(max_workers + 5)]
 
         # 30S后结束任务
@@ -134,10 +135,9 @@ def _get_arguments():
 
 
 if __name__ == '__main__':
-    # args = _get_arguments()
-    # logging.basicConfig(handlers=[logging.FileHandler(filename=LOG_NAME,
-    #                                                   encoding='utf-8', mode='a+')],
-    #                     format='%(asctime)s %(message)s',
-    #                     level=getattr(logging, args.log))
-    # run(MiaoMiao(args.tk, args.cookie), args.region_code, args.single_point)
-    print(init_ip_proxy_pool())
+    args = _get_arguments()
+    logging.basicConfig(handlers=[logging.FileHandler(filename=LOG_NAME,
+                                                      encoding='utf-8', mode='a+')],
+                        format='%(asctime)s %(message)s',
+                        level=getattr(logging, args.log))
+    run(MiaoMiao(args.tk, args.cookie), args.region_code, args.single_point)

@@ -53,7 +53,7 @@ class MiaoMiao():
                 exit(1)
         else:
             res_json = response.json()
-            logging.error(
+            logging.info(
                 f'{url}\n{"-" * 5 + "Request" + "-" * 5}\n{params}\n{"-" * 5 + "Response" + "-" * 5}\n{res_json}\nuseTime:{response.elapsed.total_seconds()}S\n')
             return res_json
 
