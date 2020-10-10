@@ -78,7 +78,7 @@ def _build_skill_param(user, vaccines: list) -> list:
     return params
 
 
-def run(miao_miao, max_workers=None, single=False):
+def run(miao_miao, max_workers=None, single=False, proxy=False):
     # 获取疫苗信息(默认选取第一个待秒疫苗)
     vaccines = miao_miao.get_vaccine_list()
     # 获取秒杀人信息
@@ -91,7 +91,7 @@ def run(miao_miao, max_workers=None, single=False):
 
     params = params if not single else params[:1]
     # 初始化IP代理池
-    ip_proxys = init_ip_proxy_pool()
+    ip_proxys = [] if not proxy else init_ip_proxy_pool()
 
     # python3.8 默认max_workers = min(32, os.cpu_count() + 4)
     _params_len = len(params)
@@ -129,6 +129,7 @@ def _get_arguments():
     parser.add_argument('-rc', '--region_code', type=int, default='5101', help='区域编码 默认使用成都编码5101')
     parser.add_argument('-sp', '--single_point', action='store_true',
                         help='只秒杀单个疫苗[即所有线程秒杀同一个疫苗] 默认不开启该参数则所有线程分配秒杀所有可秒杀疫苗')
+    parser.add_argument('-pi', '--proxy_ip', action='store_true', help='使用IP代理池 默认不开启该参数')
     parser.add_argument('--log', default='WARNING', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
                         help='日志级别 默认WARNING')
     return parser.parse_args()
@@ -140,4 +141,4 @@ if __name__ == '__main__':
                                                       encoding='utf-8', mode='a+')],
                         format='%(asctime)s %(message)s',
                         level=getattr(logging, args.log))
-    run(MiaoMiao(args.tk, args.cookie), args.region_code, args.single_point)
+    run(MiaoMiao(args.tk, args.cookie, args.region_code), args.max_workers,  args.single_point, args.proxy_ip)
