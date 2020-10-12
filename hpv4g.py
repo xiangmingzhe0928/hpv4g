@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import datetime
+from os import cpu_count
 from threading import current_thread
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from itertools import chain
@@ -102,8 +103,8 @@ def run(miao_miao, max_workers=None, single=False, proxy=False):
                            'http': None if (index := i % _ip_proxys_len) == 0 else ip_proxys[index]}) for i in
               range(max_workers + 5)]
 
-        # 30S后结束任务
-        wait(fs, 30, return_when=FIRST_COMPLETED)
+        # 180S后结束任务
+        wait(fs, 180, return_when=FIRST_COMPLETED)
         global KILL_FLAG
         KILL_FLAG = True
 
@@ -125,7 +126,7 @@ def _get_arguments():
     parser = argparse.ArgumentParser(description='HPV SecKill 疫苗秒杀')
     parser.add_argument('tk', help='名为tk的http header')
     parser.add_argument('cookie', help='http请求cookie')
-    parser.add_argument('-mw', '--max_workers', type=_valid_int_type, help='最大线工作线程数 默认使用 min(32, os.cpu_count() + 4)')
+    parser.add_argument('-mw', '--max_workers', type=_valid_int_type, default=min(32, cpu_count() + 4), help='最大线工作线程数 默认使用 min(32, os.cpu_count() + 4)')
     parser.add_argument('-rc', '--region_code', type=int, default='5101', help='区域编码 默认使用成都编码5101')
     parser.add_argument('-sp', '--single_point', action='store_true',
                         help='只秒杀单个疫苗[即所有线程秒杀同一个疫苗] 默认不开启该参数则所有线程分配秒杀所有可秒杀疫苗')
