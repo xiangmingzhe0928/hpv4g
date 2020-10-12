@@ -98,7 +98,7 @@ def run(miao_miao, max_workers=None, single=False, proxy=False):
     _params_len = len(params)
     _ip_proxys_len = len(ip_proxys)
     with ThreadPoolExecutor(max_workers=max_workers) as t:
-        fs = [t.submit(sec_kill_task, params[i % _params_len],
+        fs = [t.submit(sec_kill_task,miao_miao, params[i % _params_len],
                        None if not _ip_proxys_len else {
                            'http': None if (index := i % _ip_proxys_len) == 0 else ip_proxys[index]}) for i in
               range(max_workers + 5)]
