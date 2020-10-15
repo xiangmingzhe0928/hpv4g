@@ -138,6 +138,7 @@ def _get_arguments():
     parser.add_argument('-mw', '--max_workers', type=_valid_int_type, default=min(32, cpu_count() + 4),
                         help='最大线工作线程数 默认使用 min(32, os.cpu_count() + 4)')
     parser.add_argument('-rc', '--region_code', type=int, default='5101', help='区域编码 默认使用成都编码5101')
+    parser.add_argument('-reload_cache', action='store_true', help='刷新--region_code疫苗列表本地缓存')
     parser.add_argument('-sp', '--single_point', action='store_true',
                         help='只秒杀单个疫苗[即所有线程秒杀同一个疫苗] 默认不开启该参数则所有线程分配秒杀所有可秒杀疫苗')
     parser.add_argument('-pi', '--proxy_ip', action='store_true', help='使用IP代理池 默认不开启该参数')
@@ -152,4 +153,7 @@ if __name__ == '__main__':
                                                       encoding='utf-8', mode='a+')],
                         format='%(asctime)s %(message)s',
                         level=getattr(logging, args.log))
-    run(MiaoMiao(args.tk, args.cookie, args.region_code), args.max_workers, args.single_point, args.proxy_ip)
+    mm = MiaoMiao(args.tk, args.cookie, args.region_code)
+    if args.reload_cache:
+        mm.init_data_json()
+    run(mm, args.max_workers, args.single_point, args.proxy_ip)
