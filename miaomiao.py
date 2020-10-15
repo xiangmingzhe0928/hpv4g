@@ -1,9 +1,14 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+import datetime
+
 import requests
 import copy
 import logging
 from hashlib import md5
+import json
+import os
+from functools import wraps
 
 # disable ssl warnings
 requests.packages.urllib3.disable_warnings()
@@ -13,6 +18,7 @@ URLS = {
     "IP_PROXY": "https://ip.jiangxianli.com/api/proxy_ips",
     "SERVER_TIME": "https://miaomiao.scmttec.com/seckill/seckill/now2.do",
     "VACCINE_LIST": "https://miaomiao.scmttec.com/seckill/seckill/list.do",
+    "CHECK_STOCK": "https://miaomiao.scmttec.com/seckill/seckill/checkstock2.do",
     "USER_INFO": "https://miaomiao.scmttec.com/seckill/linkman/findByUserId.do",
     "SEC_KILL": "https://miaomiao.scmttec.com/seckill/seckill/subscribe.do"
 }
@@ -25,9 +31,42 @@ REQ_HEADERS = {
     "Host": "miaomiao.scmttec.com"
 }
 
+# ecc_hs盐
+ECC_HS_SALT = 'ux$ad70*b'
+
+
+def cache_json(file_name):
+    """
+    测试发现在开始秒杀前服务器对非核心秒杀接口做了降级处理(查询列表等接口直接返回502).
+    考虑提前缓存疫苗列表 秒杀开始后跳过查询列表等操作 直接调用秒杀接口
+
+    JSON文件缓存Decorator
+    :param file_name:
+    :return:
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            fn, suffix = os.path.splitext(file_name)
+            _file_name = f'{fn}_{self._region_code}{suffix}'
+            # 已缓存从缓存读取
+            if os.path.exists(_file_name) and os.path.getsize(_file_name):
+                with open(_file_name, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            # 未缓存
+            data = func(self, *args, **kwargs)
+            with open(_file_name, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False)
+            return data
+
+        return wrapper
+
+    return decorator
+
 
 class MiaoMiao():
-    def __init__(self, tk, cookie, region_code='5101'):
+    def __init__(self, tk, cookie, region_code=5101):
         self._region_code = region_code
         self._headers = copy.deepcopy(REQ_HEADERS)
         self._headers['tk'] = tk
@@ -87,7 +126,7 @@ class MiaoMiao():
                              error_exit=False,
                              verify=False)
 
-    def get_vaccine_list(self):
+    def _get_vaccine_list(self):
         """
         获取待秒杀疫苗列表
         :return:疫苗列表
@@ -102,10 +141,17 @@ class MiaoMiao():
         datas = res_vaccine['data']
         if not datas:
             print(f'---区域:{self._region_code}暂无可秒杀疫苗---')
+            _cache_file = f'cache/vaccines_{self._region_code}.json'
+            if os.path.exists(_cache_file):
+                os.remove(_cache_file)
             exit(0)
         return datas
 
-    def get_user(self):
+    @cache_json('cache/vaccines.json')
+    def get_vaccine_list_cache(self):
+        return self._get_vaccine_list()
+
+    def _get_user(self):
         """
         获取用户信息(从微信小程序入口 使用微信tk和cookie查询指定用户信息)
         :return: 用户信息
@@ -113,8 +159,12 @@ class MiaoMiao():
         res_json = MiaoMiao._get(URLS['USER_INFO'], headers=self._headers, verify=False)
         if '0000' == res_json['code']:
             return res_json['data']
-        print(f'获取用户信息失败:{res_json}')
+        print(f'{self._region_code}获取用户信息失败:{res_json}')
         exit(1)
+
+    @cache_json('cache/user.json')
+    def get_user_cache(self):
+        return self._get_user()
 
     def subscribe(self, req_param, proxies=None):
         """
@@ -124,5 +174,33 @@ class MiaoMiao():
         :return:
         """
         # error_exit=False 忽略Server端使用5XX防爬策略
+        self._headers['ecc-hs'] = MiaoMiao._ecc_hs_header(req_param["seckillId"], req_param["linkmanId"])
         return MiaoMiao._get(URLS['SEC_KILL'], params=req_param, error_exit=False, headers=self._headers,
                              proxies=proxies, verify=False)
+
+    @staticmethod
+    def _ecc_hs_header(seckill_id, linkman_id):
+        """
+        构造ecc-hs header
+        :param seckill_id: 疫苗ID
+        :param linkman_id: 接种人ID
+        :return: ecc-hs header
+
+         salt = 'ux$ad70*b';
+         md5Str = utilMd5.hexMD5(utilMd5.hexMD5(ms_id + defaultMember.id + st) + salt)
+        """
+        _ori_md5 = md5(
+            f'{seckill_id}{linkman_id}{int(datetime.datetime.now().timestamp() * 1000)}'.encode('utf-8')).hexdigest()
+        _md5_salt = md5(f'{_ori_md5}{ECC_HS_SALT}'.encode('utf-8'))
+        return _md5_salt.hexdigest()
+
+    def init_data_json(self):
+        """
+        初始化疫苗数据和接种人数据
+        缓存本地
+        :return:
+        """
+        data_dict = {'user': self._get_user(), 'vaccines': self._get_vaccine_list()}
+        for k, v in data_dict.items():
+            with open(f'cache/{k}_{self._region_code}.json', 'w', encoding='utf-8') as f:
+                json.dump(v, f, ensure_ascii=False, indent=4)
