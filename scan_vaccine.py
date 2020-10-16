@@ -7,6 +7,7 @@ from miaomiao import MiaoMiao
 """
 扫描所有城市
 缓存所有有疫苗的城市数据
+没啥实际X用
 """
 
 #  区域编码

@@ -15,11 +15,17 @@ requests.packages.urllib3.disable_warnings()
 
 # url
 URLS = {
+    # 获取代理IP
     "IP_PROXY": "https://ip.jiangxianli.com/api/proxy_ips",
+    # 服务器当前时间戳
     "SERVER_TIME": "https://miaomiao.scmttec.com/seckill/seckill/now2.do",
+    # 疫苗列表
     "VACCINE_LIST": "https://miaomiao.scmttec.com/seckill/seckill/list.do",
+    # 校验库存
     "CHECK_STOCK": "https://miaomiao.scmttec.com/seckill/seckill/checkstock2.do",
+    # 接种人信息
     "USER_INFO": "https://miaomiao.scmttec.com/seckill/linkman/findByUserId.do",
+    # 秒杀疫苗
     "SEC_KILL": "https://miaomiao.scmttec.com/seckill/seckill/subscribe.do"
 }
 
@@ -198,7 +204,6 @@ class MiaoMiao():
         """
         初始化疫苗数据和接种人数据
         缓存本地
-        :return:
         """
         data_dict = {'user': self._get_user(), 'vaccines': self._get_vaccine_list()}
         for k, v in data_dict.items():
