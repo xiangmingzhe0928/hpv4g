@@ -92,12 +92,18 @@ class MiaoMiao():
             response = requests.get(url, params, **kwargs)
             response.raise_for_status()
         except Exception as err:
-            print(f'URL:{url} error occurred{err}')
-            logging.error(f'URL:{url} ERROR:{err}')
+            error_response = f'URL:{url} ERROR:{err}'
+            print(error_response)
+            logging.error(error_response)
             if error_exit:
                 exit(1)
         else:
             res_json = response.json()
+            '''
+            日志默认级别[WARNING] 考虑最大限度不影响秒杀效果此处以[INFO]记录正常响应的请求(正常响应不代表秒杀成功)\
+            即控制台和trace.log均不会记录正常响应日志\
+            若希望记录响应日志 使用--log指定日志级别
+            '''
             logging.info(
                 f'{url}\n{"-" * 5 + "Request" + "-" * 5}\n{params}\n{"-" * 5 + "Response" + "-" * 5}\n{res_json}\nuseTime:{response.elapsed.total_seconds()}S\n')
             return res_json

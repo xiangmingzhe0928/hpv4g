@@ -4,7 +4,7 @@ import datetime
 import textwrap
 from os import cpu_count
 from threading import current_thread
-from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED, ALL_COMPLETED
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from itertools import chain
 import argparse
 import logging
@@ -113,6 +113,7 @@ def run(miao_miao, max_workers=None, single=False, proxy=False):
         wait(fs, 180, return_when=FIRST_COMPLETED)
         global KILL_FLAG
         KILL_FLAG = True
+        print('>>>>>>>>>>>>>>>>>本轮未成功秒杀到疫苗<<<<<<<<<<<<<<<<<<<')
 
     print('-----DONE----')
 
