@@ -6,12 +6,13 @@
 
 ### precondition
 
+   - `python3.8+`
+
    - 使用`Fiddler`等抓包工具抓取约苗小程序请求header
         - tk
         - cookie
         <img width="509" alt="2" src="https://user-images.githubusercontent.com/7719370/99932763-06f41000-2d94-11eb-80b6-3c76b112db6d.png">
 ### use
-   - `python3.8+`
 
    - `hpv4g.py`执行秒杀 `-h`可选参数
        ```
