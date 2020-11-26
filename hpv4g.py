@@ -39,7 +39,7 @@ def sec_kill_task(miao_miao, req_param, proxy=None):
     global KILL_FLAG
     while not KILL_FLAG:
         res_json = miao_miao.subscribe(req_param, proxy)
-        if res_json['code'] == '0000':
+        if res_json and res_json['code'] == '0000':
             print(f'{current_thread().name} Kill Success')
             KILL_FLAG = True
             return
