@@ -102,7 +102,7 @@ class MiaoMiao():
             _suc_msg = f'{url}\n{"-" * 5 + "Request" + "-" * 5}\n{params}\n{"-" * 5 + "Response" + "-" * 5}\n{res_json}\nuseTime:{response.elapsed.total_seconds()}S\n'
             '''
             日志默认级别[WARNING] 考虑最大限度不影响秒杀效果此处以[INFO]记录正常响应的请求(正常响应不代表秒杀成功)\
-            即控制台和trace.log均不会记录正常响应日志\
+            即trace.log均不会记录正常响应日志\
             若希望记录响应日志 使用--log指定日志级别
             '''
             print(_suc_msg)
