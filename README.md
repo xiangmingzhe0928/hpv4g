@@ -17,7 +17,8 @@
    - `hpv4g.py`执行秒杀 `-h`可选参数
        ```
         # tkstring cookiestring 为抓包得到的tk cookie
-        hpv4g.py tkstring cookiestring
+        # 推荐直接双引号("")包裹cookiestring 避免多cookie-key间空格造成python错误当作多个参数解析
+        hpv4g.py tkstring "cookiestring"
        ```
    - `-reload_cache`参数
    
