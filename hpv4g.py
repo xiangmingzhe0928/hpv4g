@@ -34,6 +34,7 @@ def sec_kill_task(miao_miao, req_param, proxy=None):
     :return:
     """
     _start_time = req_param['startTimeUnx']
+    # 距秒杀开始300ms 开始执行请求
     while _start_time - int(datetime.datetime.now().timestamp() * 1000) > 300:
         pass
     global KILL_FLAG
@@ -43,7 +44,7 @@ def sec_kill_task(miao_miao, req_param, proxy=None):
             print(f'{current_thread().name} Kill Success')
             KILL_FLAG = True
             return
-        sleep(0.1)
+        sleep(0.5)
 
 
 def init_ip_proxy_pool(pages: int = 2) -> list:
@@ -110,7 +111,7 @@ def run(miao_miao, max_workers=None, single=False, proxy=False):
               range(max_workers + 5)]
 
         # 180S后结束任务
-        wait(fs, 180, return_when=FIRST_COMPLETED)
+        wait(fs, 120, return_when=FIRST_COMPLETED)
         global KILL_FLAG
         KILL_FLAG = True
         print('>>>>>>>>>>>>>>>>>本轮未成功秒杀到疫苗<<<<<<<<<<<<<<<<<<<')
