@@ -42,3 +42,8 @@
 ### :purple_heart:
 个人能力有限且小程序经常更新
 欢迎**Star** **Fork**
+
+---
+### Github上其他的一些Hpv疫苗秒杀库 方便大家查找（顺序不分先后）
+- `GO` https://github.com/xjblszyy/JiuJia 
+- `JAVA` https://github.com/lyrric/seckill
