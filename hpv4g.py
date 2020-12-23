@@ -110,7 +110,7 @@ def run(miao_miao, max_workers=None, single=False, proxy=False):
                            'http': None if (index := i % _ip_proxys_len) == 0 else ip_proxys[index]}) for i in
               range(max_workers + 5)]
 
-        # 180S后结束任务
+        # 120S后结束任务
         wait(fs, 120, return_when=FIRST_COMPLETED)
         global KILL_FLAG
         KILL_FLAG = True
