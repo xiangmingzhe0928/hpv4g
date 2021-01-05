@@ -187,7 +187,6 @@ class MiaoMiao():
         :return:
         """
         # error_exit=False 忽略Server端使用5XX防爬策略
-        self._headers['ecc-hs'] = MiaoMiao._ecc_hs_header(req_param["seckillId"], req_param["linkmanId"])
         return MiaoMiao._get(URLS['SEC_KILL'], params=req_param, error_exit=False, headers=self._headers,
                              proxies=proxies, verify=False)
 
