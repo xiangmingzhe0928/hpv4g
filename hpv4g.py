@@ -34,7 +34,7 @@ def sec_kill_task(miao_miao, req_param, proxy=None):
     :return:
     """
     #在进入秒杀轮询前计算好ECC-HS值，降低轮询执行时间
-    miaomiao._headers['ecc-hs'] = MiaoMiao._ecc_hs_header(req_param["seckillId"], req_param["linkmanId"])
+    miao_miao._headers['ecc-hs'] = MiaoMiao._ecc_hs_header(req_param["seckillId"], req_param["linkmanId"])
     _start_time = req_param['startTimeUnx']
     # 距秒杀开始300ms 开始执行请求
     while _start_time - int(datetime.datetime.now().timestamp() * 1000) > 300:
