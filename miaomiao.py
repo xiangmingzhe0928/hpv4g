@@ -190,8 +190,7 @@ class MiaoMiao():
         return MiaoMiao._get(URLS['SEC_KILL'], params=req_param, error_exit=False, headers=self._headers,
                              proxies=proxies, verify=False)
 
-    @staticmethod
-    def _ecc_hs_header(seckill_id, linkman_id):
+    def ecc_hs_header(self, seckill_id, linkman_id):
         """
         构造ecc-hs header
         :param seckill_id: 疫苗ID
@@ -204,7 +203,7 @@ class MiaoMiao():
         _ori_md5 = md5(
             f'{seckill_id}{linkman_id}{int(datetime.datetime.now().timestamp() * 1000)}'.encode('utf-8')).hexdigest()
         _md5_salt = md5(f'{_ori_md5}{ECC_HS_SALT}'.encode('utf-8'))
-        return _md5_salt.hexdigest()
+        self._headers['ecc-hs'] = _md5_salt.hexdigest()
 
     def init_data_json(self):
         """
