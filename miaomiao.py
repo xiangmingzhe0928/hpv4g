@@ -39,6 +39,7 @@ REQ_HEADERS = {
 
 # ecc_hs盐
 ECC_HS_SALT = 'ux$ad70*b'
+CACHE_DIR = 'cache'
 
 
 def cache_json(file_name):
@@ -54,13 +55,18 @@ def cache_json(file_name):
     def decorator(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
+
             fn, suffix = os.path.splitext(file_name)
-            _file_name = f'{fn}_{self._region_code}{suffix}'
+            _file_name = os.path.join(CACHE_DIR, f'{fn}_{self._region_code}{suffix}')
+
             # 已缓存从缓存读取
             if os.path.exists(_file_name) and os.path.getsize(_file_name):
                 with open(_file_name, 'r', encoding='utf-8') as f:
                     return json.load(f)
+
             # 未缓存
+            if not os.path.exists(CACHE_DIR):
+                os.makedirs(CACHE_DIR)
             data = func(self, *args, **kwargs)
             with open(_file_name, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False)
@@ -154,13 +160,13 @@ class MiaoMiao():
         datas = res_vaccine['data']
         if not datas:
             print(f'---区域:{self._region_code}暂无可秒杀疫苗---')
-            _cache_file = f'cache/vaccines_{self._region_code}.json'
+            _cache_file = f'{CACHE_DIR}/vaccines_{self._region_code}.json'
             if os.path.exists(_cache_file):
                 os.remove(_cache_file)
             exit(0)
         return datas
 
-    @cache_json('cache/vaccines.json')
+    @cache_json('vaccines.json')
     def get_vaccine_list_cache(self):
         return self._get_vaccine_list()
 
@@ -175,7 +181,7 @@ class MiaoMiao():
         print(f'{self._region_code}获取用户信息失败:{res_json}')
         exit(1)
 
-    @cache_json('cache/user.json')
+    @cache_json('user.json')
     def get_user_cache(self):
         return self._get_user()
 
@@ -211,6 +217,8 @@ class MiaoMiao():
         缓存本地
         """
         data_dict = {'user': self._get_user(), 'vaccines': self._get_vaccine_list()}
+        if not os.path.exists(CACHE_DIR):
+            os.makedirs(CACHE_DIR)
         for k, v in data_dict.items():
-            with open(f'cache/{k}_{self._region_code}.json', 'w', encoding='utf-8') as f:
+            with open(f'{CACHE_DIR}/{k}_{self._region_code}.json', 'w', encoding='utf-8') as f:
                 json.dump(v, f, ensure_ascii=False, indent=4)
